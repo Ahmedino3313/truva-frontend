@@ -41,6 +41,16 @@ export const deleteSavingsGoal = createAsyncThunk('savings/delete', async (id, t
     }
 })
 
+// WITHDRAW SAVINGS GOAL
+export const withdrawSavingsGoal = createAsyncThunk('savings/withdraw', async (id, thunkAPI) => {
+    try {
+        const res = await API.post(`/savings/${id}/withdraw`)
+        return { ...res.data, id }
+    } catch (err) {
+        return thunkAPI.rejectWithValue(err.response.data.message)
+    }
+})
+
 const savingsSlice = createSlice({
     name: 'savings',
     initialState: {
@@ -57,6 +67,7 @@ const savingsSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+        
         // GET ALL SAVINGS GOALS
         .addCase(getSavingsGoals.pending, (state) => {
             state.loading = true
@@ -70,6 +81,7 @@ const savingsSlice = createSlice({
             state.loading = false
             state.error = action.payload
         })
+
         // CREATE SAVINGS GOAL
         .addCase(createSavingsGoal.pending, (state) => {
             state.loading = true
@@ -85,6 +97,7 @@ const savingsSlice = createSlice({
             state.loading = false
             state.error = action.payload
         })
+
         // FUND SAVINGS GOAL
         .addCase(fundSavingsGoal.pending, (state) => {
             state.loading = true
@@ -102,6 +115,7 @@ const savingsSlice = createSlice({
             state.loading = false
             state.error = action.payload
         })
+
         // DELETE SAVINGS GOAL
         .addCase(deleteSavingsGoal.pending, (state) => {
             state.loading = true
@@ -116,6 +130,15 @@ const savingsSlice = createSlice({
         .addCase(deleteSavingsGoal.rejected, (state, action) => {
             state.loading = false
             state.error = action.payload
+        })
+
+        // WITHDRAW SAVINGS GOAL
+        .addCase(withdrawSavingsGoal.fulfilled, (state, action) => {
+            state.loading = false
+            state.success = true
+            state.goals = state.goals.filter(
+                (goal) => goal.id !== action.payload.id
+            )
         })
     },
 })

@@ -15,6 +15,7 @@ import Notifications from './pages/Notifications.jsx'
 import QRPayment from './pages/QRPayment.jsx'
 import Settings from './pages/Settings.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import Admin from './pages/Admin.jsx'
 
 import Layout from './components/Layout.jsx'
 
@@ -52,6 +53,7 @@ function App() {
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/qr" element={<QRPayment />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/admin" element={<Admin />} />
               </Route>
             </Route>
 

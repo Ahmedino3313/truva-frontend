@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../features/auth/authSlice.js'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiHome, FiSend, FiCreditCard, FiTrendingUp, FiTarget, FiBell, FiSettings, FiLogOut, FiDollarSign, FiGrid } from 'react-icons/fi'
+import { FiHome, FiSend, FiCreditCard, FiTrendingUp, FiTarget, FiBell, FiSettings, FiLogOut, FiDollarSign, FiGrid, } from 'react-icons/fi'
 import { RiQrCodeLine } from 'react-icons/ri'
 import toast from 'react-hot-toast'
 
