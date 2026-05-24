@@ -41,7 +41,7 @@ function Login() {
             <div className="hidden lg:flex flex-col justify-between w-1/2 p-12 relative overflow-hidden m-4 rounded-3xl">
 
                 <img
-                    src="/src/assets/truva-banner.png"
+                    src="/truva-banner.png"
                     alt="Banking"
                     className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -59,7 +59,7 @@ function Login() {
                     >
                         <div className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center overflow-hidden">
                             <img
-                                src="/src/assets/truva-logo.png"
+                                src="/truva-logo.png"
                                 alt="TRUVA"
                                 className="w-8 h-8 object-contain"
                             />
@@ -121,7 +121,7 @@ function Login() {
                     >
                         <div className="w-16 h-16 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center overflow-hidden mb-2">
                             <img
-                                src="/src/assets/truva-logo.png"
+                                src="/truva-logo.png"
                                 alt="TRUVA"
                                 className="w-12 h-12 object-contain"
                             />

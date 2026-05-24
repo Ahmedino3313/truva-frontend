@@ -202,7 +202,7 @@ function Dashboard() {
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center overflow-hidden">
-                                <img src="/src/assets/truva-logo.png" alt="TRUVA" className="w-6 h-6 object-contain" />
+                                <img src="/truva-logo.png" alt="TRUVA" className="w-6 h-6 object-contain" />
                             </div>
                             <span className="text-white font-bold text-sm">TRUVA</span>
                         </div>

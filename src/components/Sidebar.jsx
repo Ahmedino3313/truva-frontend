@@ -60,7 +60,7 @@ function Sidebar({ isOpen, onClose }) {
                 {/* Logo */}
                 <div className={`flex items-center gap-3 px-6 py-5 border-b ${isDark ? 'border-gray-800' : 'border-gray-100'}`}>
                     <div className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow flex items-center justify-center overflow-hidden">
-                        <img src="/src/assets/truva-logo.png" alt="TRUVA" className="w-7 h-7 object-contain" />
+                        <img src="/truva-logo.png" alt="TRUVA" className="w-7 h-7 object-contain" />
                     </div>
                     <span className={`font-bold text-lg tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>TRUVA</span>
                 </div>

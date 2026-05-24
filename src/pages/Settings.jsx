@@ -559,7 +559,7 @@ function Settings() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow flex items-center justify-center overflow-hidden">
-                            <img src="/src/assets/truva-logo.PNG" alt="TRUVA" className="w-7 h-7 object-contain" />
+                            <img src="/truva-logo.png" alt="TRUVA" className="w-7 h-7 object-contain" />
                         </div>
                         <div>
                             <p className={`text-sm font-semibold ${textPrimary}`}>TRUVA</p>

@@ -54,7 +54,7 @@ function Signup() {
 
             {/* Left panel */}
             <div className="hidden lg:block w-[55%] relative m-5 rounded-3xl overflow-hidden shrink-0">
-                <img src="/src/assets/truva-banner.png" alt="Banking" className="absolute inset-0 w-full h-full object-cover" />
+                <img src="/truva-banner.png" alt="Banking" className="absolute inset-0 w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-linear-to-br from-[#00c6ff]/75 to-[#7b2ff7]/90" />
                 <div className="relative z-10 h-full flex flex-col justify-between p-12">
                     <motion.div
@@ -63,7 +63,7 @@ function Signup() {
                         className="flex items-center gap-3"
                     >
                         <div className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center overflow-hidden">
-                            <img src="/src/assets/truva-logo.png" alt="TRUVA" className="w-8 h-8 object-contain" />
+                            <img src="/truva-logo.png" alt="TRUVA" className="w-8 h-8 object-contain" />
                         </div>
                         <span className="text-white font-bold text-xl">TRUVA</span>
                     </motion.div>
@@ -121,7 +121,7 @@ function Signup() {
                         className="flex lg:hidden flex-col items-center mb-8"
                     >
                         <div className="w-16 h-16 rounded-full bg-white shadow border border-gray-100 flex items-center justify-center overflow-hidden mb-3">
-                            <img src="/src/assets/truva-logo.png" alt="TRUVA" className="w-12 h-12 object-contain" />
+                            <img src="/truva-logo.png" alt="TRUVA" className="w-12 h-12 object-contain" />
                         </div>
                         <span className="font-bold text-xl text-gray-900">TRUVA</span>
                     </motion.div>
