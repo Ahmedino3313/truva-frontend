@@ -1,11 +1,14 @@
+import API from '../api/axios.js'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { getBalance } from '../features/wallet/walletSlice.js'
 import { getTransactions } from '../features/transactions/transactionSlice.js'
-import { FiSend, FiDollarSign, FiCreditCard, FiTarget, FiEye, FiEyeOff, FiArrowUpRight, FiArrowDownLeft, FiChevronRight } from 'react-icons/fi'
+import { FiSend, FiDollarSign, FiCreditCard, FiTarget, FiEye, FiEyeOff, FiArrowUpRight, FiArrowDownLeft, FiChevronRight, FiAlertCircle, FiX } from 'react-icons/fi'
 import { RiQrCodeLine } from 'react-icons/ri'
+import toast from 'react-hot-toast'
+
 
 const quickActions = [
     { label: 'Send', icon: FiSend, path: '/send', color: 'from-[#00c6ff] to-[#0072ff]' },
@@ -15,6 +18,7 @@ const quickActions = [
     { label: 'Savings', icon: FiTarget, path: '/savings', color: 'from-[#43e97b] to-[#38f9d7]' },
 ]
 
+
 function Dashboard() {
     const dispatch = useDispatch()
     const { user } = useSelector((state) => state.auth)
@@ -22,13 +26,46 @@ function Dashboard() {
     const { transactions } = useSelector((state) => state.transactions)
     const { isDark } = useSelector((state) => state.theme)
     const [showBalance, setShowBalance] = useState(true)
+    const [verifyLoading, setVerifyLoading] = useState(false)
+    const [showVerifyModal, setShowVerifyModal] = useState(false)
+    const [verifyCode, setVerifyCode] = useState('')
+    const [codeSent, setCodeSent] = useState(false)
 
-    useEffect(() => {
+        useEffect(() => {
         dispatch(getBalance())
         dispatch(getTransactions())
     }, [dispatch])
 
     const recentTransactions = transactions.slice(0, 5)
+
+    const handleSendVerification = async () => {
+        try {
+            setVerifyLoading(true)
+            await API.post('/auth/send-verification')
+            setCodeSent(true)
+            setShowVerifyModal(true)
+            toast.success('Verification code sent to your email!')
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to send code')
+        } finally {
+            setVerifyLoading(false)
+        }
+    }
+
+    const handleVerifyEmail = async () => {
+        try {
+            setVerifyLoading(true)
+            await API.post('/auth/verify-email', { code: verifyCode })
+            toast.success('Email verified successfully!')
+            setShowVerifyModal(false)
+            dispatch(getMe())
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Invalid code')
+        } finally {
+            setVerifyLoading(false)
+        }
+    }
+
 
     const cardBg = isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100'
     const textPrimary = isDark ? 'text-white' : 'text-gray-900'
@@ -37,6 +74,83 @@ function Dashboard() {
 
     return (
         <div className="space-y-5 max-w-4xl mx-auto">
+            {/* Email verification modal */}
+            <AnimatePresence>
+                {showVerifyModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold text-gray-900">Verify your email</h3>
+                                <button onClick={() => setShowVerifyModal(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                                    <FiX size={16} />
+                                </button>
+                            </div>
+                            <p className="text-gray-500 text-sm mb-5">
+                                Enter the 6-digit code sent to <span className="font-semibold text-gray-700">{user?.email}</span>
+                            </p>
+                            <input
+                                type="text"
+                                maxLength={6}
+                                value={verifyCode}
+                                onChange={(e) => setVerifyCode(e.target.value)}
+                                placeholder="000000"
+                                className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-center text-2xl font-mono tracking-widest focus:outline-none focus:border-[#00c6ff] focus:ring-2 focus:ring-[#00c6ff]/20 mb-4"
+                            />
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.97 }}
+                                onClick={handleVerifyEmail}
+                                disabled={verifyLoading || verifyCode.length !== 6}
+                                className="w-full py-3.5 rounded-xl bg-linear-to-r from-[#00c6ff] to-[#7b2ff7] text-white font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {verifyLoading ? (
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                    </svg>
+                                ) : null}
+                                {verifyLoading ? 'Verifying...' : 'Verify Email'}
+                            </motion.button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Unverified email banner */}
+            {user && !user.isVerified && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex items-center justify-between gap-3"
+                >
+                    <div className="flex items-center gap-3">
+                        <FiAlertCircle className="text-yellow-500 text-xl shrink-0" />
+                        <div>
+                            <p className="text-sm font-semibold text-yellow-800">Verify your email</p>
+                            <p className="text-xs text-yellow-600">Verify your email to secure your account</p>
+                        </div>
+                    </div>
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={handleSendVerification}
+                        disabled={verifyLoading}
+                        className="px-4 py-2 rounded-xl bg-yellow-500 text-white text-xs font-semibold hover:bg-yellow-600 transition-colors shrink-0 disabled:opacity-50"
+                    >
+                        {verifyLoading ? 'Sending...' : 'Verify now'}
+                    </motion.button>
+                </motion.div>
+            )}
 
             {/* Balance Card */}
             <motion.div

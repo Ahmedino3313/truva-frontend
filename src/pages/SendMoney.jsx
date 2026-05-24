@@ -4,15 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FiSend, FiUser, FiDollarSign, FiCreditCard, FiCheck, FiX } from 'react-icons/fi'
 import { BsBank2 } from 'react-icons/bs'
 import toast from 'react-hot-toast'
-import {
-    sendToTruvaUser,
-    sendToBankAccount,
-    sendToCard,
-    lookupAccount,
-    clearTransactionState
-} from '../features/transactions/transactionSlice.js'
-
+import { sendToTruvaUser, sendToBankAccount, sendToCard, lookupAccount, clearTransactionState } from '../features/transactions/transactionSlice.js'
 import { getBalance } from '../features/wallet/walletSlice.js'
+import PinModal from '../components/PinModal.jsx'
 
 const tabs = [
     { id: 'truva', label: 'TRUVA', icon: FiUser },
@@ -51,6 +45,9 @@ function SendMoney() {
     const [verifiedBankAccount, setVerifiedBankAccount] = useState(null)
 
     const [showBankDropdown, setShowBankDropdown] = useState(false)
+
+    const [showPinModal, setShowPinModal] = useState(false)
+    const [pendingSubmit, setPendingSubmit] = useState(null)
 
     // TRUVA form
     const [truvaForm, setTruvaForm] = useState({ accountNumber: '', amount: '', note: '' })
@@ -147,19 +144,29 @@ function SendMoney() {
     const handleTruvaSubmit = (e) => {
         e.preventDefault()
         if (truvaForm.amount > balance) return toast.error('Insufficient balance')
-        dispatch(sendToTruvaUser(truvaForm))
+        setPendingSubmit('truva')
+        setShowPinModal(true)
     }
 
     const handleBankSubmit = (e) => {
         e.preventDefault()
         if (bankForm.amount > balance) return toast.error('Insufficient balance')
-        dispatch(sendToBankAccount(bankForm))
+        setPendingSubmit('bank')
+        setShowPinModal(true)
     }
 
     const handleCardSubmit = (e) => {
         e.preventDefault()
         if (cardForm.amount > balance) return toast.error('Insufficient balance')
-        dispatch(sendToCard(cardForm))
+        setPendingSubmit('card')
+        setShowPinModal(true)
+    }
+
+    const handlePinSuccess = () => {
+        if (pendingSubmit === 'truva') dispatch(sendToTruvaUser(truvaForm))
+        if (pendingSubmit === 'bank') dispatch(sendToBankAccount(bankForm))
+        if (pendingSubmit === 'card') dispatch(sendToCard(cardForm))
+        setPendingSubmit(null)
     }
 
     const cardBg = isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100'
@@ -615,6 +622,13 @@ function SendMoney() {
                     </AnimatePresence>
                 </div>
             </motion.div>
+            
+            <PinModal
+                isOpen={showPinModal}
+                onClose={() => setShowPinModal(false)}
+                onSuccess={handlePinSuccess}
+                title="Enter Transaction PIN"
+            />
         </div>
     )
 }

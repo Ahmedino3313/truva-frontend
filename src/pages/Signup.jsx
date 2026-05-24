@@ -2,29 +2,23 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { signup, clearError } from '../features/auth/authSlice.js'
-import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiArrowLeft } from 'react-icons/fi'
+import { FiMail, FiLock, FiEye, FiEyeOff, FiUser } from 'react-icons/fi'
 import toast from 'react-hot-toast'
-import { motion, AnimatePresence } from 'framer-motion'
-import API from '../api/axios.js'
+import { motion } from 'framer-motion'
 
 function Signup() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const { loading, error } = useSelector((state) => state.auth)
 
-    const [step, setStep] = useState(1)
-    const [sendingCode, setSendingCode] = useState(false)
-    const [showPassword, setShowPassword] = useState(false)
-    const [showConfirm, setShowConfirm] = useState(false)
-    const [countdown, setCountdown] = useState(0)
-
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
-        code: '',
         password: '',
         confirmPassword: '',
     })
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirm, setShowConfirm] = useState(false)
 
     useEffect(() => {
         if (error) {
@@ -33,56 +27,11 @@ function Signup() {
         }
     }, [error, dispatch])
 
-    useEffect(() => {
-        if (countdown > 0) {
-            const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-            return () => clearTimeout(timer)
-        }
-    }, [countdown])
-
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
-    const handleSendCode = async (e) => {
-        e.preventDefault()
-        if (!formData.fullName || !formData.email) {
-            return toast.error('Please fill in all fields')
-        }
-        try {
-            setSendingCode(true)
-            await API.post('/auth/send-verification', {
-                fullName: formData.fullName,
-                email: formData.email,
-            })
-            toast.success('Verification code sent to your email!')
-            setStep(2)
-            setCountdown(60)
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to send code')
-        } finally {
-            setSendingCode(false)
-        }
-    }
-
-    const handleResend = async () => {
-        if (countdown > 0) return
-        try {
-            setSendingCode(true)
-            await API.post('/auth/send-verification', {
-                fullName: formData.fullName,
-                email: formData.email,
-            })
-            toast.success('New code sent!')
-            setCountdown(60)
-        } catch (err) {
-            toast.error('Failed to resend code')
-        } finally {
-            setSendingCode(false)
-        }
-    }
-
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault()
         if (formData.password !== formData.confirmPassword) {
             return toast.error('Passwords do not match')
@@ -90,14 +39,10 @@ function Signup() {
         if (formData.password.length < 6) {
             return toast.error('Password must be at least 6 characters')
         }
-        if (formData.code.length !== 6) {
-            return toast.error('Please enter the 6-digit code')
-        }
         dispatch(signup({
             fullName: formData.fullName,
             email: formData.email,
             password: formData.password,
-            code: formData.code,
         })).unwrap().then(() => {
             toast.success('Account created! Please sign in.')
             navigate('/login')
@@ -117,7 +62,7 @@ function Signup() {
                         animate={{ opacity: 1, y: 0 }}
                         className="flex items-center gap-3"
                     >
-                        <div className="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center overflow-hidden">
+                        <div className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center overflow-hidden">
                             <img src="/src/assets/truva-logo.png" alt="TRUVA" className="w-8 h-8 object-contain" />
                         </div>
                         <span className="text-white font-bold text-xl">TRUVA</span>
@@ -136,9 +81,9 @@ function Signup() {
                         </p>
                         <div className="space-y-4">
                             {[
-                                { step: '01', text: 'Enter your name and email' },
-                                { step: '02', text: 'Verify with a code we send you' },
-                                { step: '03', text: 'Start banking instantly' },
+                                { step: '01', text: 'Create your free account' },
+                                { step: '02', text: 'Get your account number instantly' },
+                                { step: '03', text: 'Start sending & saving money' },
                             ].map((item, i) => (
                                 <motion.div
                                     key={item.step}
@@ -170,213 +115,190 @@ function Signup() {
                     className="w-full max-w-95"
                 >
                     {/* Mobile logo */}
-                    <div className="flex lg:hidden flex-col items-center mb-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: -16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex lg:hidden flex-col items-center mb-8"
+                    >
                         <div className="w-16 h-16 rounded-full bg-white shadow border border-gray-100 flex items-center justify-center overflow-hidden mb-3">
                             <img src="/src/assets/truva-logo.png" alt="TRUVA" className="w-12 h-12 object-contain" />
                         </div>
                         <span className="font-bold text-xl text-gray-900">TRUVA</span>
-                    </div>
+                    </motion.div>
 
-                    {/* Step indicator */}
-                    <div className="flex items-center gap-2 mb-6">
-                        <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step >= 1 ? 'bg-linear-to-r from-[#00c6ff] to-[#7b2ff7] text-white' : 'bg-gray-100 text-gray-400'}`}>1</div>
-                            <span className={`text-xs font-medium ${step >= 1 ? 'text-gray-900' : 'text-gray-400'}`}>Info</span>
-                        </div>
-                        <div className={`flex-1 h-0.5 ${step >= 2 ? 'bg-linear-to-r from-[#00c6ff] to-[#7b2ff7]' : 'bg-gray-200'}`} />
-                        <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step >= 2 ? 'bg-linear-to-r from-[#00c6ff] to-[#7b2ff7] text-white' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                            <span className={`text-xs font-medium ${step >= 2 ? 'text-gray-900' : 'text-gray-400'}`}>Verify</span>
-                        </div>
-                    </div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="mb-7"
+                    >
+                        <h2 className="text-3xl font-bold text-gray-900 mb-1 text-center lg:text-left">
+                            Create account
+                        </h2>
+                        <p className="text-gray-500 text-sm text-center lg:text-left">
+                            Free forever. No credit card required.
+                        </p>
+                    </motion.div>
 
-                    <AnimatePresence mode="wait">
+                    <form onSubmit={handleSubmit} className="space-y-4">
 
-                        {/* Step 1 */}
-                        {step === 1 && (
-                            <motion.div
-                                key="step1"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <h2 className="text-3xl font-bold text-gray-900 mb-1 text-center lg:text-left">
-                                    Create account
-                                </h2>
-                                <p className="text-gray-500 text-sm mb-7 text-center lg:text-left">
-                                    Free forever. No credit card required.
-                                </p>
+                        {/* Full name */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                        >
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                Full name
+                            </label>
+                            <div className="relative">
+                                <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="text"
+                                    name="fullName"
+                                    value={formData.fullName}
+                                    onChange={handleChange}
+                                    placeholder="Enter your full name"
+                                    required
+                                    className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00c6ff] focus:ring-2 focus:ring-[#00c6ff]/20 transition-all"
+                                />
+                            </div>
+                        </motion.div>
 
-                                <form onSubmit={handleSendCode} className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Full name</label>
-                                        <div className="relative">
-                                            <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            <input
-                                                type="text"
-                                                name="fullName"
-                                                value={formData.fullName}
-                                                onChange={handleChange}
-                                                placeholder="Enter your full name"
-                                                required
-                                                className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00c6ff] focus:ring-2 focus:ring-[#00c6ff]/20 transition-all"
-                                            />
-                                        </div>
-                                    </div>
+                        {/* Email */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.25 }}
+                        >
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                Email address
+                            </label>
+                            <div className="relative">
+                                <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="you@example.com"
+                                    required
+                                    className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00c6ff] focus:ring-2 focus:ring-[#00c6ff]/20 transition-all"
+                                />
+                            </div>
+                        </motion.div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
-                                        <div className="relative">
-                                            <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            <input
-                                                type="email"
-                                                name="email"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                                placeholder="you@example.com"
-                                                required
-                                                className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00c6ff] focus:ring-2 focus:ring-[#00c6ff]/20 transition-all"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <motion.button
-                                        type="submit"
-                                        disabled={sendingCode}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.97 }}
-                                        className="w-full py-3.5 rounded-xl cursor-pointer bg-linear-to-r from-[#00c6ff] to-[#7b2ff7] text-white font-semibold text-sm shadow-lg shadow-[#7b2ff7]/25 disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {sendingCode ? (
-                                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                                            </svg>
-                                        ) : <FiMail />}
-                                        {sendingCode ? 'Sending code...' : 'Send verification code'}
-                                    </motion.button>
-                                </form>
-                            </motion.div>
-                        )}
-
-                        {/* Step 2 */}
-                        {step === 2 && (
-                            <motion.div
-                                key="step2"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <button
-                                    onClick={() => setStep(1)}
-                                    className="flex items-center gap-1.5 text-gray-400 hover:text-gray-600 text-sm mb-5 transition-colors"
-                                >
-                                    <FiArrowLeft size={14} /> Back
+                        {/* Password */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                Password
+                            </label>
+                            <div className="relative">
+                                <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="Min. 6 characters"
+                                    required
+                                    className="w-full pl-11 pr-11 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00c6ff] focus:ring-2 focus:ring-[#00c6ff]/20 transition-all"
+                                />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                    {showPassword ? <FiEyeOff /> : <FiEye />}
                                 </button>
+                            </div>
+                        </motion.div>
 
-                                <h2 className="text-3xl font-bold text-gray-900 mb-1">Verify email</h2>
-                                <p className="text-gray-500 text-sm mb-7">
-                                    We sent a 6-digit code to <span className="font-semibold text-gray-700">{formData.email}</span>
-                                </p>
+                        {/* Confirm password */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.35 }}
+                        >
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                Confirm password
+                            </label>
+                            <div className="relative">
+                                <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type={showConfirm ? 'text' : 'password'}
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    placeholder="Repeat your password"
+                                    required
+                                    className="w-full pl-11 pr-11 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00c6ff] focus:ring-2 focus:ring-[#00c6ff]/20 transition-all"
+                                />
+                                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                    {showConfirm ? <FiEyeOff /> : <FiEye />}
+                                </button>
+                            </div>
+                        </motion.div>
 
-                                <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Submit */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                        >
+                            <motion.button
+                                type="submit"
+                                disabled={loading}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.97 }}
+                                className="w-full py-3.5 rounded-xl bg-linear-to-r from-[#00c6ff] to-[#7b2ff7] text-white font-semibold text-sm shadow-lg shadow-[#7b2ff7]/25 hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-1"
+                            >
+                                {loading ? (
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                    </svg>
+                                ) : null}
+                                {loading ? 'Creating account...' : 'Create free account'}
+                            </motion.button>
+                        </motion.div>
 
-                                    {/* Verification code */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            Verification code
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="code"
-                                            value={formData.code}
-                                            onChange={handleChange}
-                                            placeholder="000000"
-                                            maxLength={6}
-                                            required
-                                            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00c6ff] focus:ring-2 focus:ring-[#00c6ff]/20 transition-all text-center font-mono tracking-widest"
-                                        />
-                                        <div className="flex items-center justify-between mt-2">
-                                            <p className="text-xs text-gray-400">Check your inbox and spam folder</p>
-                                            <button
-                                                type="button"
-                                                onClick={handleResend}
-                                                disabled={countdown > 0}
-                                                className={`text-xs font-medium transition-colors cursor-pointer ${countdown > 0 ? 'text-gray-400' : 'text-[#7b2ff7] hover:underline'}`}
-                                            >
-                                                {countdown > 0 ? `Resend in ${countdown}s` : 'Resend code'}
-                                            </button>
-                                        </div>
-                                    </div>
+                    </form>
 
-                                    {/* Password */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-                                        <div className="relative">
-                                            <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            <input
-                                                type={showPassword ? 'text' : 'password'}
-                                                name="password"
-                                                value={formData.password}
-                                                onChange={handleChange}
-                                                placeholder="Min. 6 characters"
-                                                required
-                                                className="w-full pl-11 pr-11 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00c6ff] focus:ring-2 focus:ring-[#00c6ff]/20 transition-all"
-                                            />
-                                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                                                {showPassword ? <FiEyeOff /> : <FiEye />}
-                                            </button>
-                                        </div>
-                                    </div>
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="text-center text-xs text-gray-400 mt-4"
+                    >
+                        By creating an account you agree to our{' '}
+                        <span className="text-[#7b2ff7] cursor-pointer hover:underline">Terms</span>
+                        {' '}and{' '}
+                        <span className="text-[#7b2ff7] cursor-pointer hover:underline">Privacy Policy</span>
+                    </motion.p>
 
-                                    {/* Confirm password */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm password</label>
-                                        <div className="relative">
-                                            <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            <input
-                                                type={showConfirm ? 'text' : 'password'}
-                                                name="confirmPassword"
-                                                value={formData.confirmPassword}
-                                                onChange={handleChange}
-                                                placeholder="Repeat your password"
-                                                required
-                                                className="w-full pl-11 pr-11 py-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00c6ff] focus:ring-2 focus:ring-[#00c6ff]/20 transition-all"
-                                            />
-                                            <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                                                {showConfirm ? <FiEyeOff /> : <FiEye />}
-                                            </button>
-                                        </div>
-                                    </div>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.55 }}
+                        className="flex items-center gap-3 my-5"
+                    >
+                        <div className="flex-1 h-px bg-gray-100" />
+                        <span className="text-xs text-gray-400">or</span>
+                        <div className="flex-1 h-px bg-gray-100" />
+                    </motion.div>
 
-                                    <motion.button
-                                        type="submit"
-                                        disabled={loading}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.97 }}
-                                        className="w-full py-3.5 rounded-xl bg-linear-to-r from-[#00c6ff] to-[#7b2ff7] text-white font-semibold text-sm shadow-lg shadow-[#7b2ff7]/25 disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {loading ? (
-                                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                                            </svg>
-                                        ) : null}
-                                        {loading ? 'Creating account...' : 'Create account'}
-                                    </motion.button>
-                                </form>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    <p className="text-center text-sm text-gray-500 mt-6">
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6 }}
+                        className="text-center text-sm text-gray-500"
+                    >
                         Already have an account?{' '}
                         <Link to="/login" className="text-[#7b2ff7] font-semibold hover:underline">
                             Sign in
                         </Link>
-                    </p>
+                    </motion.p>
                 </motion.div>
             </div>
         </div>
